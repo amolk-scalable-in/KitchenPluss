@@ -12,6 +12,7 @@ import {
 } from './api/client.js';
 import { useSocket } from './hooks/useSocket.js';
 import { Header, AppTab } from './components/Header.js';
+import { NavigationMenu } from './components/NavigationMenu.js';
 import { StationFilter } from './components/StationFilter.js';
 import { KdsBoard } from './components/KdsBoard.js';
 import { NewTicketModal } from './components/NewTicketModal.js';
@@ -32,6 +33,7 @@ export function App() {
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState<boolean>(false);
   const [updatingTicketId, setUpdatingTicketId] = useState<string | null>(null);
   const [prepSheet, setPrepSheet] = useState<AiPrepSheetResponse | null>(null);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
 
   const queryClient = useQueryClient();
   const { isConnected, stationWorkloads, alerts, dismissAlert } = useSocket();
@@ -240,10 +242,22 @@ export function App() {
         alerts={alerts}
         onDismissAlert={dismissAlert}
         ticketCounts={ticketCounts}
+        onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
       />
 
       {/* Main Workspace Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Dedicated Separated Modular Navigation Menu (Web, Tablet & Mobile) */}
+      <NavigationMenu
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        ticketCounts={ticketCounts}
+        isMobileDrawerOpen={isMobileDrawerOpen}
+        setIsMobileDrawerOpen={setIsMobileDrawerOpen}
+        onOpenNewTicket={() => setIsNewTicketModalOpen(true)}
+        alertsCount={alerts.length}
+      />
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 md:pb-8">
         {/* Tab 1: Live Kitchen Display System (KDS) */}
         {activeTab === 'kds' && (
           <div className="space-y-4">
