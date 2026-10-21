@@ -54,7 +54,7 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
 - [x] **Day 3: Gemini SDK Integration** **[Completed]**
   - *Task*: Integrate Gemini 1.5 Pro / Flash via the Google GenAI SDK with structured outputs.
   - *Manager Standup Update*: "I established direct Gemini SDK integration in the AI microservice with structured JSON output enforcement."
-- [ ] **Day 4: Database Connection (SQLAlchemy)** 
+- [x] **Day 4: Database Connection (SQLAlchemy)** **[Completed]**
   - *Task*: Connect the Python service to your PostgreSQL database using SQLAlchemy/asyncpg to query real inventory tables.
   - *Manager Standup Update*: "I enabled read access from the AI microservice to our production PostgreSQL database to allow live state inspection."
 - [ ] **Day 5: SSE Streaming** 

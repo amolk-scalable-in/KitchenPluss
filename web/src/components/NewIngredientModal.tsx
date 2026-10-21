@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, PackagePlus, DollarSign, Scale, ShieldAlert } from 'lucide-react';
+import { X, PackagePlus, Scale, ShieldAlert } from 'lucide-react';
 
 interface NewIngredientModalProps {
   isOpen: boolean;
@@ -128,7 +128,7 @@ export const NewIngredientModal: React.FC<NewIngredientModalProps> = ({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Bourbon, Truffle Oil, Fresh Basil, Calamari"
+              placeholder="e.g. Fresh Malai Paneer, Desi Cow Ghee, Basmati Rice, Boneless Chicken"
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-white/10 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
             />
           </div>
@@ -154,12 +154,12 @@ export const NewIngredientModal: React.FC<NewIngredientModalProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
-                <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Cost Per Unit ($)</span>
+                <span className="text-emerald-400 font-bold text-xs">₹</span>
+                <span>Cost Per Unit (₹)</span>
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="1"
                 min="0"
                 value={costPerUnit}
                 onChange={(e) => setCostPerUnit(e.target.value)}

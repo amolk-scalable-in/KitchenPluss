@@ -140,15 +140,19 @@ KitchenPluss/
 ├── services/
 │   └── ai-agent/                  # Python FastAPI AI Agent Microservice (Port 8000)
 │       ├── Dockerfile             # Container configuration with Uvicorn
-│       ├── requirements.txt       # FastAPI, Uvicorn, Pydantic, HTTPX
+│       ├── requirements.txt       # FastAPI, Uvicorn, Pydantic, HTTPX, SQLAlchemy, asyncpg
 │       └── app/
 │           ├── main.py            # FastAPI entrypoint, CORS & routers
 │           ├── config.py          # Settings & ENV variables (gemini_model: gemini-3.8-flash)
-│           ├── routers/           # /health, /api/v1/agent/forecast, /inventory-eval
+│           ├── db/                # SQLAlchemy 2.0 + asyncpg asynchronous persistence layer
+│           │   ├── session.py     # Engine, sessionmaker, lifespan hooks & health check
+│           │   ├── models.py      # Declarative models (Organization, Ingredient, Recipe, etc.)
+│           │   └── repository.py  # Tenant-isolated repository functions (Rule 4.1 compliant)
+│           ├── routers/           # /health, /api/v1/agent/forecast, /inventory-eval, /live-inventory
 │           ├── schemas/           # Pydantic models & Gemini structured outputs
 │           └── services/          # Core forecasting, inventory logic & GeminiService
 │               ├── agent_service.py # AI domain router
-│               └── gemini_service.py# Google GenAI SDK (gemini-3.8-flash) + structured JSON output
+│               └── gemini_service.py# Google GenAI SDK (gemini-3.8-flash) + live PostgreSQL grounding
 │
 ├── docs/
 │   └── KitchenPluss AI Integration Plan.xlsx # Multi-phase AI roadmap synced with todo.md

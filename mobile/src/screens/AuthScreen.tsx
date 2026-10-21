@@ -255,7 +255,7 @@ export default function AuthScreen() {
                 <Text style={styles.label}>Full Name</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g. Marco Pierre White"
+                  placeholder="e.g. Rajesh Singhania or Sanjeev Kapoor"
                   placeholderTextColor="#64748b"
                   value={name}
                   onChangeText={setName}
@@ -315,7 +315,7 @@ export default function AuthScreen() {
               style={styles.demoBtn}
               onPress={() => handleQuickDemo("owner@grandpalace.com")}
             >
-              <Text style={styles.demoBtnText}>👑 Grand Palace (Owner)</Text>
+              <Text style={styles.demoBtnText}>👑 Grand Palace Mumbai (Owner)</Text>
               <Text style={styles.demoEmail}>owner@grandpalace.com</Text>
             </TouchableOpacity>
 
@@ -323,7 +323,7 @@ export default function AuthScreen() {
               style={styles.demoBtn}
               onPress={() => handleQuickDemo("admin@grandpalace.com")}
             >
-              <Text style={styles.demoBtnText}>🛡️ Grand Palace (Admin)</Text>
+              <Text style={styles.demoBtnText}>🛡️ Grand Palace Mumbai (Admin)</Text>
               <Text style={styles.demoEmail}>admin@grandpalace.com</Text>
             </TouchableOpacity>
 
@@ -331,7 +331,7 @@ export default function AuthScreen() {
               style={styles.demoBtn}
               onPress={() => handleQuickDemo("owner@bellanapoli.com")}
             >
-              <Text style={styles.demoBtnText}>👑 Bella Napoli (Owner)</Text>
+              <Text style={styles.demoBtnText}>👑 Bella Napoli Bengaluru (Owner)</Text>
               <Text style={styles.demoEmail}>owner@bellanapoli.com</Text>
             </TouchableOpacity>
 
@@ -339,7 +339,7 @@ export default function AuthScreen() {
               style={styles.demoBtn}
               onPress={() => handleQuickDemo("cook@grandpalace.com")}
             >
-              <Text style={styles.demoBtnText}>🍳 Line Cook (Cook)</Text>
+              <Text style={styles.demoBtnText}>🍳 Grand Palace (Line Cook)</Text>
               <Text style={styles.demoEmail}>cook@grandpalace.com</Text>
             </TouchableOpacity>
           </View>

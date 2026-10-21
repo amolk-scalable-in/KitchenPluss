@@ -265,7 +265,7 @@ export const AuthPortal: React.FC = () => {
                       required
                       value={orgName}
                       onChange={(e) => setOrgName(e.target.value)}
-                      placeholder="e.g. The Royal Grand Hotel & Spa"
+                      placeholder="e.g. The Royal Grand Hotel & Spa, Mumbai"
                       className="w-full glass-input border-amber-500/40 focus:border-amber-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
                     />
                   </div>
@@ -468,7 +468,7 @@ export const AuthPortal: React.FC = () => {
             >
               <div className="font-bold text-amber-300 flex items-center gap-1 group-hover:text-amber-200">
                 <Crown className="w-3.5 h-3.5 text-amber-400" />
-                Grand Palace (Owner)
+                Grand Palace Mumbai (Owner)
               </div>
               <div className="text-[9px] text-slate-400 font-mono mt-0.5">owner@grandpalace.com</div>
             </button>
@@ -480,7 +480,7 @@ export const AuthPortal: React.FC = () => {
             >
               <div className="font-bold text-sky-300 flex items-center gap-1 group-hover:text-sky-200">
                 <Shield className="w-3.5 h-3.5 text-sky-400" />
-                Grand Palace (Admin)
+                Grand Palace Mumbai (Admin)
               </div>
               <div className="text-[9px] text-slate-400 font-mono mt-0.5">admin@grandpalace.com</div>
             </button>
@@ -492,7 +492,7 @@ export const AuthPortal: React.FC = () => {
             >
               <div className="font-bold text-emerald-300 flex items-center gap-1 group-hover:text-emerald-200">
                 <Crown className="w-3.5 h-3.5 text-emerald-400" />
-                Bella Napoli (Owner)
+                Bella Napoli Bengaluru (Owner)
               </div>
               <div className="text-[9px] text-slate-400 font-mono mt-0.5">owner@bellanapoli.com</div>
             </button>
@@ -504,7 +504,7 @@ export const AuthPortal: React.FC = () => {
             >
               <div className="font-bold text-slate-300 flex items-center gap-1 group-hover:text-white">
                 <ChefHat className="w-3.5 h-3.5 text-slate-400" />
-                Line Cook (Cook)
+                Grand Palace (Line Cook)
               </div>
               <div className="text-[9px] text-slate-400 font-mono mt-0.5">cook@grandpalace.com</div>
             </button>

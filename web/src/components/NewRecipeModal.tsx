@@ -52,24 +52,27 @@ interface NewRecipeModalProps {
 }
 
 const STATION_PRESETS = [
-  'Starters',
-  'Grill',
-  'Sauté',
+  'Tandoor & Starters',
+  'Curry & Handi',
+  'Biryani & Rice',
+  'Tawa & Breads',
   'Bar & Drinks',
-  'Desserts',
-  'Pizza & Oven',
-  'Salad & Cold',
+  'Desserts & Mithai',
+  'South Indian',
+  'Chinese & Wok',
 ];
 
 const COMMON_UNITS = ['kg', 'g', 'L', 'ml', 'oz', 'pcs', 'tbsp', 'tsp', 'bottle'];
 
 const SAMPLE_AI_PROMPTS = [
-  'Chicken Masala Handi',
-  'Paneer Tikka',
-  'Classic Mojito',
-  'Truffle Mushroom Risotto',
-  'Crispy Calamari',
-  'Tiramisu',
+  'Butter Chicken',
+  'Paneer Butter Masala',
+  'Hyderabadi Dum Biryani',
+  'Dal Makhani',
+  'Tandoori Chicken',
+  'Paneer Tikka Angara',
+  'Royal Mango Lassi',
+  'Gulab Jamun with Rabdi',
 ];
 
 export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
@@ -91,9 +94,9 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
 
   // Form State
   const [name, setName] = useState('');
-  const [station, setStation] = useState('Sauté');
+  const [station, setStation] = useState('Curry & Handi');
   const [customStation, setCustomStation] = useState('');
-  const [price, setPrice] = useState('22.00');
+  const [price, setPrice] = useState('320.00');
   const [prepTime, setPrepTime] = useState('20');
   const [ingredientRows, setIngredientRows] = useState<RecipeIngredientRow[]>([]);
 
@@ -519,7 +522,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Chicken Masala Handi"
+                  placeholder="e.g. Butter Chicken or Paneer Butter Masala"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full bg-slate-900/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500"
@@ -554,13 +557,13 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
 
               {/* Selling Price */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Menu Price ($) *</label>
+                <label className="text-xs font-medium text-slate-300">Menu Price (₹) *</label>
                 <div className="relative">
-                  <DollarSign className="w-4 h-4 text-emerald-400 absolute left-3 top-2.5" />
+                  <span className="font-bold text-emerald-400 absolute left-3 top-2 text-sm select-none">₹</span>
                   <input
                     type="number"
-                    step="0.25"
-                    min="0.5"
+                    step="5"
+                    min="1"
                     required
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
@@ -659,7 +662,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                       >
                         {safeIngredients.map((ing) => (
                           <option key={ing.id} value={ing.id}>
-                            {ing.name} ({ing.unit || 'kg'}) — ${Number(ing.cost_per_unit || 0).toFixed(2)}/{ing.unit || 'kg'}
+                            {ing.name} ({ing.unit || 'kg'}) — ₹{Number(ing.cost_per_unit || 0).toFixed(2)}/{ing.unit || 'kg'}
                           </option>
                         ))}
                         <option value="__NEW__">+ Switch to New Ingredient...</option>
@@ -699,10 +702,10 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                   {row.is_new && (
                     <div className="flex items-center space-x-2 shrink-0 bg-slate-950/50 p-1.5 rounded-lg border border-white/5">
                       <div className="flex items-center space-x-1" title="Unit Cost">
-                        <span className="text-[10px] text-slate-500">$</span>
+                        <span className="text-[10px] text-slate-500">₹</span>
                         <input
                           type="number"
-                          step="0.05"
+                          step="1"
                           min="0"
                           value={row.cost_per_unit}
                           onChange={(e) => handleRowChange(idx, 'cost_per_unit', parseFloat(e.target.value) || 0)}
@@ -742,7 +745,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                   {/* Cost per portion */}
                   <div className="shrink-0 text-right w-16">
                     <span className="text-xs font-mono text-slate-400">
-                      ${(Number(row.quantity_required) * Number(row.cost_per_unit)).toFixed(2)}
+                      ₹{(Number(row.quantity_required) * Number(row.cost_per_unit)).toFixed(2)}
                     </span>
                   </div>
 
@@ -765,7 +768,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
             <div>
               <div className="text-[11px] text-slate-400 font-medium">Est. Cost / Portion</div>
               <div className="text-lg font-bold font-mono text-slate-100">
-                ${calculatedCost.toFixed(2)}
+                ₹{calculatedCost.toFixed(2)}
               </div>
             </div>
 
@@ -783,7 +786,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
             <div>
               <div className="text-[11px] text-slate-400 font-medium">Gross Margin</div>
               <div className="text-lg font-bold font-mono text-emerald-400">
-                ${grossMargin.toFixed(2)}{' '}
+                ₹{grossMargin.toFixed(2)}{' '}
                 <span className="text-xs font-normal text-slate-400">({grossMarginPct}%)</span>
               </div>
             </div>

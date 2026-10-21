@@ -3,6 +3,8 @@
 // Single implementation for Food Cost, Scrap Percentages, and Clocks
 // ============================================================
 
+export const CURRENCY_SYMBOL = '₹';
+
 /**
  * Calculates food cost percentage: (cost / sale_price) * 100
  */
@@ -22,11 +24,13 @@ export function calculateWastePercentage(wasteQty: number, preppedQty: number): 
 }
 
 /**
- * Formats a numerical amount to standard USD currency format
+ * Formats a numerical amount to Indian Rupee (INR - ₹) format
+ * Uses Indian numbering grouping (e.g. ₹1,250.00 or ₹350.00)
  */
 export function formatCurrency(amount: number | null | undefined): string {
-  if (amount == null || isNaN(amount)) return '$0.00';
-  return `$${Number(amount).toFixed(2)}`;
+  if (amount == null || isNaN(amount)) return '₹0.00';
+  const num = Number(amount);
+  return `₹${num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**
@@ -44,24 +48,36 @@ export function formatElapsedTime(createdAt: string | Date | number): string {
 }
 
 /**
- * Returns station color code for KDS badge displays
+ * Returns station color code for KDS badge displays with Indian commercial kitchen stations
  */
 export function getStationColor(station: string): { bg: string; text: string; border: string } {
   const norm = (station || '').toUpperCase();
-  switch (norm) {
-    case 'GRILL':
-      return { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' };
-    case 'SAUTÉ':
-    case 'SAUTE':
-      return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20' };
-    case 'PREP':
-      return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' };
-    case 'PIZZA':
-    case 'OVEN':
-      return { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20' };
-    case 'DISH':
-      return { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' };
-    default:
-      return { bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' };
+  if (norm.includes('TANDOOR') || norm.includes('GRILL')) {
+    return { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' };
   }
+  if (norm.includes('CURRY') || norm.includes('HANDI') || norm.includes('SAUTÉ') || norm.includes('SAUTE')) {
+    return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20' };
+  }
+  if (norm.includes('BIRYANI') || norm.includes('RICE')) {
+    return { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' };
+  }
+  if (norm.includes('STARTER') || norm.includes('CHAAT')) {
+    return { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20' };
+  }
+  if (norm.includes('TAWA') || norm.includes('ROTI') || norm.includes('BREAD')) {
+    return { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20' };
+  }
+  if (norm.includes('BAR') || norm.includes('DRINK') || norm.includes('BEVERAGE')) {
+    return { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20' };
+  }
+  if (norm.includes('DESSERT') || norm.includes('MITHAI')) {
+    return { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/20' };
+  }
+  if (norm.includes('PREP') || norm.includes('PANTRY')) {
+    return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' };
+  }
+  if (norm.includes('PIZZA') || norm.includes('OVEN')) {
+    return { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20' };
+  }
+  return { bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' };
 }

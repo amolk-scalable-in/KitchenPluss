@@ -239,7 +239,7 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
                     <span>{recipe.station}</span>
                   </span>
                   <span className="text-base font-bold text-emerald-400 font-mono">
-                    ${Number(recipe.sale_price ?? recipe.price ?? 0).toFixed(2)}
+                    ₹{Number(recipe.sale_price ?? recipe.price ?? 0).toFixed(2)}
                   </span>
                 </div>
 

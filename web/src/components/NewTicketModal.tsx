@@ -88,7 +88,7 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
             >
               {recipes.map((r) => (
                 <option key={r.id} value={r.id} className="bg-slate-900 text-white">
-                  {r.menu_item_name} — ${(Number(r.price) || 0).toFixed(2)} ({r.station})
+                  {r.menu_item_name} — ₹{(Number(r.price) || 0).toFixed(2)} ({r.station})
                 </option>
               ))}
             </select>

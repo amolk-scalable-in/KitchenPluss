@@ -307,6 +307,11 @@ export interface AiRecipeGenerateResponse {
   ingredients: AiRecipeGeneratedIngredient[];
   estimated_cost_per_portion: number;
   suggested_margin_pct: number;
+  estimated_portion_cost?: number;
+  gross_margin?: number;
+  food_cost_percentage?: number;
+  gross_margin_percentage?: number;
+  new_ingredients_count?: number;
 }
 
 export interface CreateRecipeWithIngredientsInput {

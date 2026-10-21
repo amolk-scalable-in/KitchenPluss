@@ -4,7 +4,6 @@ import {
   Sparkles,
   RefreshCw,
   TrendingDown,
-  DollarSign,
   AlertOctagon,
   ChevronDown,
   ChevronUp,
@@ -185,11 +184,11 @@ export const AiPrepView: React.FC<AiPrepViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="glass-panel border border-emerald-500/30 rounded-2xl p-5 flex items-center space-x-4 shadow-[0_0_20px_rgba(16,185,129,0.12)]">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
-              <DollarSign className="w-6 h-6" />
+              <span className="font-bold text-2xl text-emerald-400 select-none">₹</span>
             </div>
             <div>
               <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Total Prep Expenditure</p>
-              <h3 className="text-2xl font-bold text-emerald-300 font-mono">${totalPrepSpend.toFixed(2)}</h3>
+              <h3 className="text-2xl font-bold text-emerald-300 font-mono">₹{totalPrepSpend.toFixed(2)}</h3>
             </div>
           </div>
 
@@ -199,7 +198,7 @@ export const AiPrepView: React.FC<AiPrepViewProps> = ({
             </div>
             <div>
               <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Total Scrap Waste Loss</p>
-              <h3 className="text-2xl font-bold text-rose-400 font-mono">${totalWasteLoss.toFixed(2)}</h3>
+              <h3 className="text-2xl font-bold text-rose-400 font-mono">₹{totalWasteLoss.toFixed(2)}</h3>
             </div>
           </div>
 
@@ -260,17 +259,17 @@ export const AiPrepView: React.FC<AiPrepViewProps> = ({
                 {foodCostSummaries.map((f, i) => (
                   <tr key={i} className="hover:bg-white/[0.02] transition-colors">
                     <td className="py-3.5 px-4 font-bold text-white">{f.recipe_name}</td>
-                    <td className="py-3.5 px-4 font-mono font-medium">${(Number(f.menu_price) || 0).toFixed(2)}</td>
+                    <td className="py-3.5 px-4 font-mono font-medium">₹{(Number(f.menu_price) || 0).toFixed(2)}</td>
                     <td className="py-3.5 px-4 font-mono font-medium">{f.total_prepped}</td>
                     <td className="py-3.5 px-4 font-mono font-medium text-rose-400">{f.total_wasted}</td>
                     <td className="py-3.5 px-4 font-mono font-bold text-amber-400">
                       {(Number(f.waste_rate_percent) || 0).toFixed(1)}%
                     </td>
                     <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
-                      ${(Number(f.total_recipe_cost) || 0).toFixed(2)}
+                      ₹{(Number(f.total_recipe_cost) || 0).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 font-mono font-bold text-rose-400">
-                      ${(Number(f.total_waste_cost) || 0).toFixed(2)}
+                      ₹{(Number(f.total_waste_cost) || 0).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 font-mono font-bold">
                       <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono ${

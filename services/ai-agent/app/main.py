@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .routers import health_router, agent_router
+from .db.session import init_db, close_db
 from . import __version__
 
 # Configure logging
@@ -19,13 +20,17 @@ async def lifespan(app: FastAPI):
     """Lifecycle events for startup and shutdown."""
     logger.info("🚀 Starting KitchenPulse AI Agent microservice on port %s", settings.port)
     logger.info("Environment: %s | Backend URL: %s", settings.environment, settings.backend_url)
+    # Initialize database connection pool
+    await init_db()
     yield
+    # Gracefully dispose database pool
+    await close_db()
     logger.info("🛑 Shutting down KitchenPulse AI Agent microservice...")
 
 
 app = FastAPI(
     title="KitchenPulse AI Agent",
-    description="Autonomous kitchen prep forecasting and inventory deficit evaluation microservice.",
+    description="Autonomous kitchen prep forecasting and inventory deficit evaluation microservice with PostgreSQL live state inspection.",
     version=__version__,
     lifespan=lifespan,
     docs_url="/docs",
@@ -53,6 +58,7 @@ async def root():
         "docs": "/docs",
         "health": "/health",
         "version": __version__,
+        "database": "postgresql+asyncpg",
     }
 
 
