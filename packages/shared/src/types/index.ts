@@ -121,6 +121,9 @@ export interface LiveTicket {
   notes?: string | null;
   created_at: string | Date;
   completed_at: string | Date | null;
+  prep_time_minutes?: number;
+  recipe_price?: number;
+  ingredients?: RecipeIngredient[];
 }
 
 // Ticket alias for UI components

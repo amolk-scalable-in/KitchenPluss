@@ -51,6 +51,21 @@ export const CreateTicketSchema = z.object({
 
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>;
 
+export const CreateBatchTicketsSchema = z.object({
+  table_number: z.number().int().positive().default(1),
+  items: z.array(
+    z.object({
+      recipe_id: z.string().uuid('Valid recipe ID is required'),
+      station: z.string().trim().min(1).optional(),
+      quantity: z.number().int().positive().default(1),
+      notes: z.string().trim().max(250).optional().nullable(),
+    })
+  ).min(1, 'At least one dish must be selected'),
+  common_notes: z.string().trim().max(250).optional().nullable(),
+});
+
+export type CreateBatchTicketsInput = z.infer<typeof CreateBatchTicketsSchema>;
+
 export const UpdateTicketStatusSchema = z.object({
   status: TicketStatusSchema,
 });

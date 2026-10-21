@@ -61,6 +61,21 @@ export const ticketsApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  createBatch: (data: {
+    table_number: number;
+    items: Array<{
+      recipe_id: string;
+      station?: string;
+      quantity?: number;
+      notes?: string;
+    }>;
+    common_notes?: string;
+  }) =>
+    request<Ticket[]>('/tickets/batch', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   updateStatus: (id: string, status: TicketStatus) =>
     request<Ticket>(`/tickets/${id}/status`, {
       method: 'PATCH',

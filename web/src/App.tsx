@@ -132,6 +132,12 @@ export function App() {
     },
   });
 
+  const createBatchTicketMutation = useMutation({
+    mutationFn: ticketsApi.createBatch,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+    },
+  });
   const updateStockMutation = useMutation({
     mutationFn: ({ id, stock }: { id: string; stock: number }) =>
       ingredientsApi.updateStock(id, stock),
@@ -272,6 +278,7 @@ export function App() {
               tickets={filteredTickets}
               onUpdateStatus={(id, status) => updateStatusMutation.mutate({ id, status })}
               updatingTicketId={updatingTicketId}
+              recipes={recipes}
             />
           </div>
         )}
@@ -341,12 +348,14 @@ export function App() {
         {activeTab === 'team' && hasAdminAccess && <UserManagementView />}
       </main>
 
-      {/* New Ticket Modal */}
+            {/* New Ticket Modal */}
       <NewTicketModal
         isOpen={isNewTicketModalOpen}
         onClose={() => setIsNewTicketModalOpen(false)}
         recipes={recipes}
+        tickets={tickets}
         onSubmit={(data) => createTicketMutation.mutateAsync(data).then(() => {})}
+        onSubmitBatch={(batchData) => createBatchTicketMutation.mutateAsync(batchData).then(() => {})}
       />
     </div>
   );

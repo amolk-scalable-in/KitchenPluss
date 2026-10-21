@@ -24,6 +24,20 @@ const CreateTicketSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+
+const CreateBatchTicketsSchema = z.object({
+  table_number: z.number().int().positive().default(1),
+  items: z.array(
+    z.object({
+      recipe_id: z.string().uuid(),
+      station: z.string().min(1).max(100).optional(),
+      quantity: z.number().int().positive().default(1),
+      notes: z.string().max(500).optional().nullable(),
+    })
+  ).min(1),
+  common_notes: z.string().max(500).optional().nullable(),
+});
+
 const PatchTicketStatusSchema = z.object({
   status: z.enum(TICKET_STATUSES),
 });
@@ -40,6 +54,8 @@ function formatTicket(row: any) {
     notes: row.notes,
     created_at: row.created_at,
     completed_at: row.completed_at,
+    prep_time_minutes: row.prep_time_minutes != null ? Number(row.prep_time_minutes) : 15,
+    recipe_price: row.recipe_price != null ? Number(row.recipe_price) : undefined,
   };
 }
 
@@ -84,7 +100,9 @@ export function createTicketsRouter(io: Server): Router {
                     lt.table_number,
                     lt.notes,
                     lt.created_at,
-                    lt.completed_at
+                    lt.completed_at,
+                    r.prep_time_minutes,
+                    r.price AS recipe_price
              FROM live_tickets lt
              JOIN recipes r ON r.id = lt.recipe_id
              WHERE lt.organization_id = $1 AND lt.status = $2
@@ -101,7 +119,9 @@ export function createTicketsRouter(io: Server): Router {
                     lt.table_number,
                     lt.notes,
                     lt.created_at,
-                    lt.completed_at
+                    lt.completed_at,
+                    r.prep_time_minutes,
+                    r.price AS recipe_price
              FROM live_tickets lt
              JOIN recipes r ON r.id = lt.recipe_id
              WHERE lt.organization_id = $1
@@ -131,7 +151,7 @@ export function createTicketsRouter(io: Server): Router {
 
       // Verify recipe exists in this organization or globally
       const { rows: recipeCheck } = await pool.query(
-        `SELECT id, menu_item_name, station FROM recipes WHERE id = $1 AND (organization_id = $2 OR organization_id IS NULL)`,
+        `SELECT id, menu_item_name, station, prep_time_minutes, price FROM recipes WHERE id = $1 AND (organization_id = $2 OR organization_id IS NULL)`,
         [recipe_id, orgId]
       );
       if (recipeCheck.length === 0) {
@@ -152,6 +172,8 @@ export function createTicketsRouter(io: Server): Router {
         ...formatTicket(rows[0]),
         recipe_name: recipeCheck[0].menu_item_name,
         station: finalStation,
+        prep_time_minutes: recipeCheck[0].prep_time_minutes != null ? Number(recipeCheck[0].prep_time_minutes) : 15,
+        recipe_price: recipeCheck[0].price != null ? Number(recipeCheck[0].price) : undefined,
       };
 
       // Emit scoped to organization room
@@ -166,6 +188,63 @@ export function createTicketsRouter(io: Server): Router {
   // ---------------------------------------------------------------- //
   // PATCH /api/tickets/:id/status — update status, deduct stock on COMPLETED
   // ---------------------------------------------------------------- //
+  
+  // ---------------------------------------------------------------- //
+  // POST /api/tickets/batch — create multiple tickets for a table
+  // ---------------------------------------------------------------- //
+  router.post('/batch', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const orgId = resolveOrgId(req);
+      const parsed = CreateBatchTicketsSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(422).json({ error: 'Validation failed', details: parsed.error.flatten() });
+        return;
+      }
+
+      const { table_number, items, common_notes } = parsed.data;
+      const recipeIds = Array.from(new Set(items.map((i) => i.recipe_id)));
+
+      const { rows: recipeCheck } = await pool.query(
+        'SELECT id, menu_item_name, station, prep_time_minutes, price FROM recipes WHERE id = ANY($1::uuid[]) AND (organization_id = $2 OR organization_id IS NULL)',
+        [recipeIds, orgId]
+      );
+
+      const recipeMap = new Map(recipeCheck.map((r: any) => [r.id, r]));
+      const createdTickets: any[] = [];
+
+      for (const item of items) {
+        const rec = recipeMap.get(item.recipe_id);
+        if (!rec) continue;
+
+        const finalStation = item.station || rec.station || 'Main Kitchen';
+        const notes = [item.notes, common_notes].filter(Boolean).join(' | ') || null;
+        const qty = item.quantity || 1;
+
+        for (let q = 0; q < qty; q++) {
+          const { rows } = await pool.query(
+            'INSERT INTO live_tickets (organization_id, recipe_id, station, table_number, notes, status) VALUES ($1, $2, $3, $4, $5, \'QUEUE\') RETURNING *',
+            [orgId, item.recipe_id, finalStation, table_number ?? 1, notes]
+          );
+
+          const ticket = {
+            ...formatTicket(rows[0]),
+            recipe_name: rec.menu_item_name,
+            station: finalStation,
+            prep_time_minutes: rec.prep_time_minutes != null ? Number(rec.prep_time_minutes) : 15,
+            recipe_price: rec.price != null ? Number(rec.price) : undefined,
+          };
+
+          emitTicketCreated(io, ticket as any, orgId);
+          createdTickets.push(ticket);
+        }
+      }
+
+      res.status(201).json(createdTickets);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.patch('/:id/status', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const client = await pool.connect();
     try {
