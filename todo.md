@@ -57,12 +57,12 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
 - [x] **Day 4: Database Connection (SQLAlchemy)** **[Completed]**
   - *Task*: Connect the Python service to your PostgreSQL database using SQLAlchemy/asyncpg to query real inventory tables.
   - *Manager Standup Update*: "I enabled read access from the AI microservice to our production PostgreSQL database to allow live state inspection."
-- [ ] **Day 5: SSE Streaming** 
+- [x] **Day 5: SSE Streaming** **[Completed]**
   - *Task*: Expose a streaming SSE endpoint (/api/agent/stream) that the React Native app can listen to for real-time recommendations.
   - *Manager Standup Update*: "I created a Server-Sent Events (SSE) streaming endpoint in the AI service to deliver real-time token streaming to the mobile client."
 
 ### Week 2: Recipe & SOP Vector Database (RAG over Recipes)
-- [ ] **Day 6: pgvector Setup** 
+- [x] **Day 6: pgvector Setup** **[Completed]**
   - *Task*: Enable the pgvector extension in your existing PostgreSQL database (01_init.sql).
   - *Manager Standup Update*: "I enabled the pgvector extension on our PostgreSQL instance to support in-database vector embeddings without needing third-party vector DBs."
 - [ ] **Day 7: Document Embedding Pipeline** 

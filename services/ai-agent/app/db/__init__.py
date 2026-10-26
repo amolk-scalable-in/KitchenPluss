@@ -15,6 +15,7 @@ from .models import (
     PrepLog,
     LiveTicket,
     SupplierOrder,
+    RecipeEmbedding,
 )
 from .repository import KitchenDbRepository
 
@@ -33,5 +34,6 @@ __all__ = [
     "PrepLog",
     "LiveTicket",
     "SupplierOrder",
+    "RecipeEmbedding",
     "KitchenDbRepository",
 ]

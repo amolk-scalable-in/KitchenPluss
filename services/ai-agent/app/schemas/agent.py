@@ -116,3 +116,18 @@ class LiveRecipeListResponse(BaseModel):
     organization_id: str
     total_recipes: int
     recipes: List[LiveRecipeItem]
+
+
+# ── Server-Sent Events (SSE) Streaming Schemas ─────────────────
+
+class StreamRequest(BaseModel):
+    """Input payload for real-time SSE recommendation streaming."""
+    organization_id: str = Field(..., description="UUID of the organization / hotel client")
+    prompt: Optional[str] = Field(None, description="Custom chef query or instructions")
+    stream_type: str = Field(
+        default="prep_forecast",
+        description="Stream mode: 'prep_forecast', 'inventory_eval', or 'chef_assistant'"
+    )
+    day_of_week: Optional[str] = Field(None, description="Day of week override, e.g. 'Friday'")
+    use_live_db: bool = Field(default=True, description="Query PostgreSQL database for real inventory/recipes")
+

@@ -49,6 +49,8 @@ app.add_middleware(
 # Register routers
 app.include_router(health_router)
 app.include_router(agent_router, prefix="/api/v1")
+app.include_router(agent_router, prefix="/api")
+
 
 
 @app.get("/")

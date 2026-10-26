@@ -36,6 +36,16 @@ export async function initDb(): Promise<void> {
     } else {
       console.warn('⚠️ Migration 03_organizations.sql not found at:', migrationPath);
     }
+
+    // 3. Run Migration 04 (pgvector & Recipe SOP Embeddings)
+    const vectorMigrationPath = path.resolve(__dirname, 'migrations', '04_pgvector.sql');
+    if (fs.existsSync(vectorMigrationPath)) {
+      const vectorSql = fs.readFileSync(vectorMigrationPath, 'utf8');
+      await pool.query(vectorSql);
+      console.log('✅ Database schema verified: pgvector & recipe_embeddings table ready');
+    } else {
+      console.warn('⚠️ Migration 04_pgvector.sql not found at:', vectorMigrationPath);
+    }
   } catch (error) {
     console.error('❌ Error initializing database schema:', error);
   }

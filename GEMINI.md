@@ -274,6 +274,8 @@ npm run build:all
 # Run verification test suites (MCP, WebSocket, AI Microservice, Multi-tenant RBAC)
 npm run test:all
 npm run test:ai           # Python FastAPI + Gemini 3.8 Flash structured output test suite
+npm run test:stream       # Real-time Server-Sent Events (SSE) streaming verification
+npm run test:vector       # pgvector & 768-dim recipe embedding similarity test suite
 npm run sync:phases       # Two-way sync between todo.md and docs/KitchenPluss AI Integration Plan.xlsx
 npx tsx backend/scripts/verify-multi-tenant-rbac.ts
 

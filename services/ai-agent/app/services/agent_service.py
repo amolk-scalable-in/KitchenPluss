@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas.agent import (
     ForecastRequest,
@@ -10,6 +10,7 @@ from ..schemas.agent import (
     LiveIngredientItem,
     LiveRecipeListResponse,
     LiveRecipeItem,
+    StreamRequest,
 )
 from ..db.session import get_session_factory
 from ..db.repository import KitchenDbRepository
@@ -40,6 +41,17 @@ class AgentService:
         using Google Gemini 3.8 Flash SDK integration with structured outputs.
         """
         return await GeminiService.evaluate_inventory(payload, session)
+
+    @staticmethod
+    async def stream_recommendations(
+        payload: StreamRequest,
+        session: Optional[AsyncSession] = None,
+    ) -> AsyncGenerator[str, None]:
+        """
+        Stream real-time SSE recommendation events from Gemini AI grounded in PostgreSQL state.
+        """
+        async for chunk in GeminiService.stream_recommendations(payload, session):
+            yield chunk
 
     @staticmethod
     async def get_live_inventory_status(

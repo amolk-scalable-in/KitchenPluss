@@ -12,7 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -184,3 +184,30 @@ class SupplierOrder(Base):
     __table_args__ = (
         Index("idx_supplier_orders_org_status", "organization_id", "status"),
     )
+
+
+class RecipeEmbedding(Base):
+    """Vector embedding record for recipe steps, allergen notices, and kitchen SOPs."""
+    __tablename__ = "recipe_embeddings"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    recipe_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    document_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    metadata_json: Mapped[dict] = mapped_column("metadata", JSONB, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+
+    organization: Mapped["Organization"] = relationship()
+    recipe: Mapped[Optional["Recipe"]] = relationship()
+
+    __table_args__ = (
+        Index("idx_recipe_embeddings_org_type", "organization_id", "document_type"),
+    )
+

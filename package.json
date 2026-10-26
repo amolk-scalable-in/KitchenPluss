@@ -14,7 +14,7 @@
     "dev:web": "cd web && npm run dev",
     "dev:postgres-mcp": "cd mcp-servers/postgres-mcp && npm run dev",
     "dev:supplier-mcp": "cd mcp-servers/supplier-mcp && npm run dev",
-    "dev:ai-agent": "cd services/ai-agent && uvicorn app.main:app --reload --port 8000",
+    "dev:ai-agent": "cd services/ai-agent && ..\\..\\venv\\Scripts\\uvicorn.exe app.main:app --reload --port 8000",
     "dev:mobile": "cd mobile && npx expo start",
     "build:shared": "npm run build --workspace=@kitchenpulse/shared",
     "build:web": "cd web && npm run build",
@@ -26,12 +26,14 @@
     "docker:logs": "docker-compose logs -f",
     "test:mcp": "cd backend && npx tsx scripts/test-mcp-servers.ts",
     "test:ws": "cd backend && npx tsx scripts/test-ws-and-ai.ts",
-    "test:ai": "cd services/ai-agent && python test_agent.py && python test_db_connection.py",
-    "test:ai-db": "cd services/ai-agent && python test_db_connection.py",
+    "test:ai": "cd services/ai-agent && ..\\..\\venv\\Scripts\\python.exe test_agent.py && ..\\..\\venv\\Scripts\\python.exe test_db_connection.py && ..\\..\\venv\\Scripts\\python.exe test_stream.py",
+    "test:stream": "cd services/ai-agent && ..\\..\\venv\\Scripts\\python.exe test_stream.py",
+    "test:ai-db": "cd services/ai-agent && ..\\..\\venv\\Scripts\\python.exe test_db_connection.py",
     "test:bom": "npx tsx backend/scripts/verify-stocks-dishes-bom.ts",
     "test:ai-dish": "npx tsx backend/scripts/verify-ai-dish-and-ingredients.ts",
-    "test:all": "npm run test:mcp && npm run test:ws && npm run test:ai && npm run test:bom && npm run test:ai-dish",
-    "sync:phases": "python scripts/sync_phases.py",
+    "test:vector": "npx tsx backend/scripts/verify-pgvector.ts",
+    "test:all": "npm run test:mcp && npm run test:ws && npm run test:ai && npm run test:bom && npm run test:ai-dish && npm run test:vector",
+    "sync:phases": "venv\\Scripts\\python.exe scripts/sync_phases.py",
     "install:all": "npm install && cd mobile && npm install"
   }
 }

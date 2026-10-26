@@ -5,6 +5,13 @@
 -- Enable UUID extension if available
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Enable pgvector extension for in-database vector embeddings & semantic search
+DO $$ BEGIN
+    CREATE EXTENSION IF NOT EXISTS vector;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'pgvector extension not installed: %', SQLERRM;
+END $$;
+
 -- ── Ingredients ────────────────────────────────────────────
 -- id, name, unit, current_stock, minimum_threshold
 CREATE TABLE IF NOT EXISTS ingredients (

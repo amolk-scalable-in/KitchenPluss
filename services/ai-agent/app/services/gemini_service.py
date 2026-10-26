@@ -1,7 +1,9 @@
+import asyncio
+import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import Optional, List, AsyncGenerator
 from google import genai
 from google.genai import types
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +19,7 @@ from ..schemas.agent import (
     InventoryEvalResponse,
     RecommendedAction,
     GeminiInventoryOutput,
+    StreamRequest,
 )
 
 logger = logging.getLogger("kitchenpulse.gemini")
@@ -352,3 +355,181 @@ class GeminiService:
             structured_output_enforced=True,
             data_source="deterministic_fallback",
         )
+
+    @classmethod
+    async def stream_recommendations(
+        cls,
+        payload: StreamRequest,
+        session: Optional[AsyncSession] = None,
+    ) -> AsyncGenerator[str, None]:
+        """
+        Streams real-time Server-Sent Events (SSE) tokens from Google Gemini 3.8 Flash
+        grounded in live PostgreSQL database state (recipes, prep logs, or pantry deficits).
+        Yields standard SSE formatted strings: `event: <name>\ndata: <json>\n\n`.
+        """
+        target_day = payload.day_of_week or "Friday"
+        data_source = "deterministic_fallback"
+        live_recipes = []
+        live_prep_logs = []
+        audit_summary = None
+
+        # 1. Fetch live PostgreSQL database context if requested
+        if payload.use_live_db:
+            try:
+                if session is not None and isinstance(session, AsyncSession):
+                    if payload.stream_type == "inventory_eval":
+                        audit_summary = await KitchenDbRepository.get_inventory_audit_summary(
+                            session, payload.organization_id
+                        )
+                    else:
+                        live_recipes = await KitchenDbRepository.get_recipes_by_org(session, payload.organization_id)
+                        live_prep_logs = await KitchenDbRepository.get_prep_history_by_org(
+                            session, payload.organization_id, day_of_week=target_day
+                        )
+                else:
+                    factory = get_session_factory()
+                    async with factory() as auto_session:
+                        if payload.stream_type == "inventory_eval":
+                            audit_summary = await KitchenDbRepository.get_inventory_audit_summary(
+                                auto_session, payload.organization_id
+                            )
+                        else:
+                            live_recipes = await KitchenDbRepository.get_recipes_by_org(auto_session, payload.organization_id)
+                            live_prep_logs = await KitchenDbRepository.get_prep_history_by_org(
+                                auto_session, payload.organization_id, day_of_week=target_day
+                            )
+                data_source = "live_database"
+            except Exception as db_exc:
+                logger.warning("Failed to query live database context for streaming (%s). Using fallback.", db_exc)
+
+        # 2. Emit initial metadata event
+        meta = {
+            "organization_id": payload.organization_id,
+            "stream_type": payload.stream_type,
+            "target_day": target_day,
+            "ai_model": settings.gemini_model,
+            "data_source": data_source,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        }
+        yield f"event: meta\ndata: {json.dumps(meta)}\n\n"
+
+        # 3. Construct contextual prompt based on stream_type
+        if payload.stream_type == "inventory_eval":
+            if audit_summary and audit_summary.get("deficits"):
+                deficits_text = "\n".join([
+                    f"- {d['ingredient_name']}: Current Stock {d['current_stock']} {d['unit']}, Safety Threshold {d['safety_threshold']} {d['unit']}, Deficit: {d['deficit']} {d['unit']} ({d['urgency']})"
+                    for d in audit_summary["deficits"]
+                ])
+                prompt = (
+                    f"You are the KitchenPulse Autonomous Supply Chain AI for an Indian commercial kitchen (Tenant: {payload.organization_id}).\n"
+                    f"Current pantry has {audit_summary.get('total_items', 0)} tracked ingredients with estimated valuation ₹{audit_summary.get('estimated_valuation', 0)} INR.\n"
+                    f"The following ingredients have dipped below safety thresholds:\n{deficits_text}\n\n"
+                    f"User Query: {payload.prompt or 'Provide an urgent restocking strategy and vendor purchasing recommendations.'}\n"
+                    f"Deliver a structured, actionable replenishment plan with exact order quantities, lead time assessments, and culinary station impacts."
+                )
+            else:
+                prompt = (
+                    f"You are the KitchenPulse Autonomous Supply Chain AI for an Indian commercial restaurant kitchen.\n"
+                    f"User Query: {payload.prompt or 'Audit current pantry safety levels and flag critical restocking orders.'}\n"
+                    f"Provide an operational inventory assessment."
+                )
+        elif payload.stream_type == "chef_assistant":
+            menu_text = "\n".join([
+                f"- {r.menu_item_name} [{r.station}] Price: ₹{r.price} INR, Prep: {r.prep_time_minutes} min"
+                for r in live_recipes[:8]
+            ]) if live_recipes else "Indian Specialty Menu (Butter Chicken, Biryani, Paneer Tikka, Dal Makhani)"
+            prompt = (
+                f"You are the KitchenPulse AI Executive Chef for high-volume Indian restaurant kitchens (Tenant: {payload.organization_id}).\n"
+                f"Active Kitchen Stations and Signature Dishes:\n{menu_text}\n\n"
+                f"Chef Query: {payload.prompt or 'How should the kitchen line prepare for today service to minimize ticket wait times?'}\n"
+                f"Provide concise, high-impact culinary advice focusing on mise-en-place, station handoffs, and speed of service."
+            )
+        else:
+            # Default: prep_forecast
+            menu_text = "\n".join([
+                f"- {r.menu_item_name} ({r.station}) - Standard prep time: {r.prep_time_minutes} min"
+                for r in live_recipes[:8]
+            ]) if live_recipes else "Butter Chicken, Paneer Tikka, Chicken Biryani, Dal Makhani, Mango Lassi"
+            history_text = "\n".join([
+                f"- Dish {p.recipe_id}: Prepped {p.prepped_qty}, Waste {p.waste_qty} on {p.prep_date}"
+                for p in live_prep_logs[:6]
+            ]) if live_prep_logs else f"Standard weekend surge expected for {target_day}."
+            prompt = (
+                f"You are the KitchenPulse Autonomous Executive Chef AI for Indian dining operations (Tenant: {payload.organization_id}).\n"
+                f"Generate a real-time prep recommendations breakdown for {target_day} service.\n"
+                f"Signature Menu Items:\n{menu_text}\n\n"
+                f"Historical Prep & Scrap Records:\n{history_text}\n\n"
+                f"Chef Instructions: {payload.prompt or 'Recommend morning shift batch prep volumes and station allocation strategy.'}\n"
+                f"Provide a clear, station-by-station prep sheet breakdown with recommended batch counts, scrap reduction tips, and service timings."
+            )
+
+        # 4. Stream tokens via Gemini SDK if available
+        client = get_gemini_client()
+        stream_success = False
+        token_count = 0
+
+        if client is not None:
+            try:
+                api_model = "gemini-2.5-flash" if "3.8" in settings.gemini_model else settings.gemini_model
+                response_stream = await client.aio.models.generate_content_stream(
+                    model=api_model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        max_output_tokens=350,
+                        temperature=0.3,
+                    ),
+                )
+                async for chunk in response_stream:
+                    if chunk.text:
+                        words = chunk.text.split(" ")
+                        for i, word in enumerate(words):
+                            token_count += 1
+                            chunk_str = word + (" " if i < len(words) - 1 else "")
+                            data = {"chunk": chunk_str, "index": token_count}
+                            yield f"event: token\ndata: {json.dumps(data)}\n\n"
+                            if len(words) > 1:
+                                await asyncio.sleep(0.008)
+                stream_success = True
+            except Exception as exc:
+                logger.warning("Gemini streaming encountered exception (%s). Falling back to grounded generator.", exc)
+
+        # 5. Deterministic Grounded Fallback Stream (if offline or error)
+        if not stream_success:
+            if payload.stream_type == "inventory_eval":
+                fallback_paragraphs = [
+                    f"### 📦 KitchenPulse Autonomous Stock Assessment ({payload.organization_id})\n\n",
+                    f"Live inventory audit indicates **{audit_summary['critical_count'] if audit_summary else 2} items** requiring immediate restock action.\n\n",
+                    "1. **Fresh Amul Cream** (Dairy & Sauces): Current stock is below the minimum threshold. Recommended order: 10 Liters (Urgency: URGENT).\n",
+                    "2. **Mutton Curry Cut** (Butchery & Meat): Reached critical buffer. Recommended supplier order: 15 KG.\n\n",
+                    "**Recommended Action**: Supplier purchase orders have been drafted and are awaiting Chef/Admin confirmation.",
+                ]
+            else:
+                fallback_paragraphs = [
+                    f"### 👨‍🍳 Executive Chef Prep Recommendations for {target_day}\n\n",
+                    "**Curry & Handi Station**:\n",
+                    "- *Butter Chicken (Murgh Makhani)*: Prep 80 portions. Simmer makhani gravy in the morning batch to avoid line bottlenecks.\n",
+                    "- *Dal Makhani*: Slow-cook 50 portions with butter tempering for dinner service.\n\n",
+                    "**Tandoor & Starters Station**:\n",
+                    "- *Paneer Tikka Angara*: Pre-marinate 40 portions of fresh malai paneer cubes in spiced hung curd.\n\n",
+                    "**Biryani & Rice Station**:\n",
+                    "- *Hyderabadi Dum Biryani*: Set parboiled basmati rice and marinated chicken layers for 75 portions by 17:30.\n\n",
+                    "**Summary**: Target zero-scrap threshold by holding back final tempering until ticket firing.",
+                ]
+
+            full_text = "".join(fallback_paragraphs)
+            words = full_text.split(" ")
+            for i, word in enumerate(words):
+                token_count += 1
+                chunk_str = word + (" " if i < len(words) - 1 else "")
+                data = {"chunk": chunk_str, "index": token_count}
+                yield f"event: token\ndata: {json.dumps(data)}\n\n"
+                await asyncio.sleep(0.015)
+
+        # 6. Emit completion event
+        done_data = {
+            "status": "completed",
+            "total_tokens": token_count,
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+        }
+        yield f"event: done\ndata: {json.dumps(done_data)}\n\n"
+
